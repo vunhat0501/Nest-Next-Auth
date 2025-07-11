@@ -1,5 +1,5 @@
 {
-  "name": "my-turborepo",
+  "name": "Nest-Next-Auth",
   "private": true,
   "scripts": {
     "build": "turbo run build",

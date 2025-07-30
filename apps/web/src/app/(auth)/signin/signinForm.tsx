@@ -1,30 +1,19 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import SubmitButton from "@/components/ui/submitButton";
-import { signUp } from "@/lib/auth";
+import { Input } from "@/components/ui/input";
 import React, { useActionState } from "react";
+import SubmitButton from "@/components/ui/submitButton";
+import Link from "next/link";
+import { signIn } from "@/lib/auth";
 
-const SignUpForm = () => {
-  const [state, action] = useActionState(signUp, undefined);
+const SignInForm = () => {
+  const [state, action] = useActionState(signIn, undefined);
   return (
     <form className="w-full" action={action}>
       <div className="flex flex-col gap-4">
         {state?.message && (
           <p className="text-sm text-red-500">{state.message}</p>
-        )}
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="name">Name</Label>
-          <Input
-            id="name"
-            name="name"
-            type="text"
-            placeholder="john@example.com"
-          />
-        </div>
-        {state?.error?.name && (
-          <p className="text-sm text-red-500">{state.error.name}</p>
         )}
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="email">Email</Label>
@@ -39,7 +28,7 @@ const SignUpForm = () => {
           <p className="text-sm text-red-500">{state.error.email}</p>
         )}
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">Password"</Label>
           <Input
             id="password"
             name="password"
@@ -48,19 +37,15 @@ const SignUpForm = () => {
           />
         </div>
         {state?.error?.password && (
-          <div className="text-sm text-red-500">
-            <p>Password must:</p>
-            <ul>
-              {state.error.password.map((error) => (
-                <li key={error}>{error}</li>
-              ))}
-            </ul>
-          </div>
+          <p className="text-sm text-red-500">{state.error.password}</p>
         )}
-        <SubmitButton>Sign Up</SubmitButton>
+        <Link className="text-sm underline" href="#">
+          Forgot your password?
+        </Link>
+        <SubmitButton>Sign In</SubmitButton>
       </div>
     </form>
   );
 };
 
-export default SignUpForm;
+export default SignInForm;

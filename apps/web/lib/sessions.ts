@@ -10,7 +10,7 @@ export type Session = {
     name: string;
   };
 
-  // accessToken: string;
+  accessToken: string;
   // refreshToken: string;
 };
 
@@ -53,4 +53,9 @@ export async function getSession() {
     console.log("Error verifying session:", error);
     redirect("/signin");
   }
+}
+
+export async function deleteSession() {
+  (await cookies()).delete("session");
+  redirect("/");
 }

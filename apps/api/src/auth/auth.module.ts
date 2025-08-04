@@ -8,12 +8,15 @@ import { JwtModule } from '@nestjs/jwt';
 import jwtConfig from 'src/auth/config/jwt.config';
 import { ConfigModule } from '@nestjs/config';
 import { JwtStrategy } from 'src/auth/strategies/jwt.strategy';
+import refreshConfig from 'src/auth/config/refresh.config';
+import { RefreshStrategy } from 'src/auth/strategies/refresh-token.strategy';
 
 @Module({
   imports: [
     //** Config module to read variable from env file */
     JwtModule.registerAsync(jwtConfig.asProvider()),
     ConfigModule.forFeature(jwtConfig),
+    ConfigModule.forFeature(refreshConfig),
   ],
   controllers: [AuthController],
   providers: [
@@ -22,6 +25,7 @@ import { JwtStrategy } from 'src/auth/strategies/jwt.strategy';
     PrismaService,
     LocalStrategy,
     JwtStrategy,
+    RefreshStrategy,
   ],
 })
 export class AuthModule {}

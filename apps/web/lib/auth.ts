@@ -1,6 +1,7 @@
 "use server";
 
-import { createSession } from "@/lib/sessions";
+import { BACKEND_URL, FRONTEND_URL } from "@/lib/constants";
+import { createSession, updateToken } from "@/lib/sessions";
 import { FormState, SignInFormSchema, SignupFormSchema } from "@/lib/type";
 import { redirect } from "next/navigation";
 // import { signIn as authjsSignIn } from "@/auth";
@@ -73,8 +74,8 @@ export async function signIn(
     body: JSON.stringify(validatedFields.data),
   });
 
-  //** If response is ok, redirect to home page */
-  // * If not, return error message */
+  //** If getting user data, redirect to home page */
+  // * If not, show error message */
   if (response.ok) {
     const result = await response.json();
     await createSession({
@@ -83,6 +84,7 @@ export async function signIn(
         name: result.name,
       },
       accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
     });
     redirect("/");
   } else {
@@ -94,6 +96,38 @@ export async function signIn(
     };
   }
 }
+
+export const refreshToken = async (oldRefreshToken: string) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/auth/refresh`, {
+      method: "POST",
+      body: JSON.stringify({
+        refresh: oldRefreshToken,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to refresh token");
+    }
+
+    const { accessToken, refreshToken } = await response.json();
+    //** Update session with new tokens */
+    // await updateToken({ accessToken, refreshToken });
+    const updateRes = await fetch(`${FRONTEND_URL}/api/auth/update`, {
+      method: "POST",
+      body: JSON.stringify({
+        accessToken,
+        refreshToken,
+      }),
+    });
+    if (!updateRes.ok) throw new Error("Failed to update session");
+
+    return accessToken;
+  } catch (err) {
+    console.error("Error refreshing token:", err);
+    return null;
+  }
+};
 
 //**? This is signin function using authjs. might be useful in the future
 // ? when the version become official and fix the custom error throwing */

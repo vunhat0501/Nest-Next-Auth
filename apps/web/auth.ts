@@ -1,3 +1,4 @@
+import { BACKEND_URL } from "@/lib/constants";
 import { InvalidEmailPasswordError } from "@/lib/errors";
 import { SignInFormSchema } from "@/lib/type";
 import NextAuth from "next-auth";
@@ -26,7 +27,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         //** Fetch user from backend */
         const { email, password } = parsedCredentials.data;
-        const response = await fetch(`${process.env.BACKEND_URL}/auth/signin`, {
+        const response = await fetch(`${BACKEND_URL}/auth/signin`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

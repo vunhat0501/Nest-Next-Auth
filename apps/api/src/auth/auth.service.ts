@@ -1,10 +1,13 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import type { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { verify } from 'argon2';
+import refreshConfig from 'src/auth/config/refresh.config';
 import { AuthJwtPayload } from 'src/auth/types/auth-jwtPayload';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { UserService } from 'src/user/user.service';
@@ -14,6 +17,8 @@ export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    @Inject(refreshConfig.KEY)
+    private readonly refreshTokenConfig: ConfigType<typeof refreshConfig>,
   ) {}
   async registerUser(createUserDto: CreateUserDto) {
     const user = await this.userService.findByEmail(createUserDto.email);
@@ -36,11 +41,12 @@ export class AuthService {
 
   async login(userId: number, name: string) {
     //** Get tokens from generateToken func */
-    const { accessToken } = await this.generateToken(userId);
+    const { accessToken, refreshToken } = await this.generateToken(userId);
     return {
       id: userId,
       name: name,
       accessToken,
+      refreshToken,
     };
   }
 
@@ -48,12 +54,14 @@ export class AuthService {
     const payload: AuthJwtPayload = { sub: userId };
 
     //** Generate both refresh and access token at the same time when login */
-    const [accessToken] = await Promise.all([
+    const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload),
+      this.jwtService.signAsync(payload, this.refreshTokenConfig),
     ]);
 
     return {
       accessToken,
+      refreshToken,
     };
   }
 
@@ -63,5 +71,24 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('User not found');
     const currentUser = { id: user.id };
     return currentUser;
+  }
+
+  //** Check if user's refresh token exist in database */
+  async validateRefreshToken(userId: number) {
+    const user = await this.userService.findOne(userId);
+    if (!user) throw new UnauthorizedException('User not found');
+    const currentUser = { id: user.id };
+    return currentUser;
+  }
+
+  //** This function is for revoking user's refresh token */
+  async refreshToken(userId: number, name: string) {
+    const { accessToken, refreshToken } = await this.generateToken(userId);
+    return {
+      id: userId,
+      name: name,
+      accessToken,
+      refreshToken,
+    };
   }
 }

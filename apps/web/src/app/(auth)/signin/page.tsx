@@ -1,3 +1,4 @@
+import { BACKEND_URL } from "@/lib/constants";
 import SignInForm from "@/src/app/(auth)/signin/signinForm";
 import Link from "next/link";
 import React from "react";
@@ -7,6 +8,13 @@ const SignInPage = () => {
     <div className="bg-white p-8 rounded-lg shadow-lg w-96 flex flex-col justify-center items-center ">
       <h1 className="text-center text-2xl font-bold mb-4">Sign In Page</h1>
       <SignInForm />
+      <hr />
+      <a
+        className="border w-full mt-2 px-4 py-2 rounded-2xl bg-black text-white flex justify-center items-center"
+        href={`${BACKEND_URL}/auth/google/login`}
+      >
+        Sign in with Google
+      </a>
       <div className="flex flex-col gap-4"></div>
       <div className="flex justify-between text-sm mt-1.5">
         <p>Don't have an account?</p>

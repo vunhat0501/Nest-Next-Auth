@@ -10,6 +10,8 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtStrategy } from 'src/auth/strategies/jwt.strategy';
 import refreshConfig from 'src/auth/config/refresh.config';
 import { RefreshStrategy } from 'src/auth/strategies/refresh-token.strategy';
+import googleOathConfig from 'src/auth/config/google-oath.config';
+import { GoogleStrategy } from 'src/auth/strategies/google.strategy';
 
 @Module({
   imports: [
@@ -17,6 +19,7 @@ import { RefreshStrategy } from 'src/auth/strategies/refresh-token.strategy';
     JwtModule.registerAsync(jwtConfig.asProvider()),
     ConfigModule.forFeature(jwtConfig),
     ConfigModule.forFeature(refreshConfig),
+    ConfigModule.forFeature(googleOathConfig),
   ],
   controllers: [AuthController],
   providers: [
@@ -26,6 +29,7 @@ import { RefreshStrategy } from 'src/auth/strategies/refresh-token.strategy';
     LocalStrategy,
     JwtStrategy,
     RefreshStrategy,
+    GoogleStrategy,
   ],
 })
 export class AuthModule {}

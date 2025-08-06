@@ -101,6 +101,7 @@ export const refreshToken = async (oldRefreshToken: string) => {
   try {
     const response = await fetch(`${BACKEND_URL}/auth/refresh`, {
       method: "POST",
+      //** Use headers if refreshToken set as fromAuthHeaderAsBearerToken in backend config */
       body: JSON.stringify({
         refresh: oldRefreshToken,
       }),

@@ -3,7 +3,9 @@
 import { BACKEND_URL, FRONTEND_URL } from "@/lib/constants";
 import { createSession, updateToken } from "@/lib/sessions";
 import { FormState, SignInFormSchema, SignupFormSchema } from "@/lib/type";
+import { getFieldError } from "@/lib/z-error-utils";
 import { redirect } from "next/navigation";
+import z from "zod";
 // import { signIn as authjsSignIn } from "@/auth";
 // import { AuthError } from "next-auth";
 // import { InvalidEmailPasswordError } from "@/lib/errors";
@@ -13,19 +15,22 @@ export async function signUp(
   formData: FormData
 ): Promise<FormState> {
   //** Validate field input */
-  const validationFields = SignupFormSchema.safeParse({
+  const validatedFields = SignupFormSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
     password: formData.get("password"),
   });
 
-  if (!validationFields.success) {
+  if (!validatedFields.success) {
+    const fieldErrors = getFieldError(validatedFields.error);
+    // console.log(fieldErrors);
     return {
-      error: validationFields.error.flatten().fieldErrors,
+      error: fieldErrors,
+      // error: validatedFields.error.flatten().fieldErrors,
     };
   }
 
-  const response = await fetch(`${process.env.BACKEND_URL}/auth/signup`, {
+  const response = await fetch(`${BACKEND_URL}/auth/signup`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -60,13 +65,17 @@ export async function signIn(
 
   //** If validation fails, return error messages */
   // * This will be used to show error messages in the UI */
-  if (!validatedFields.success)
+  if (!validatedFields.success) {
+    const fieldErrors = getFieldError(validatedFields.error);
+    // console.log(fieldErrors);
     return {
-      error: validatedFields.error.flatten().fieldErrors,
+      error: fieldErrors,
+      // error: validatedFields.error.flatten().fieldErrors,
     };
+  }
 
   //** Getting user data from backend */
-  const response = await fetch(`${process.env.BACKEND_URL}/auth/signin`, {
+  const response = await fetch(`${BACKEND_URL}/auth/signin`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

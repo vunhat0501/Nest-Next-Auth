@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { ConfigType } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
+import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { AuthService } from 'src/auth/auth.service';
 import refreshConfig from 'src/auth/config/refresh.config';
@@ -15,15 +16,20 @@ export class RefreshStrategy extends PassportStrategy(Strategy, 'refresh-jwt') {
     private authService: AuthService,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromBodyField('refresh'),
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: refreshTokenConfiguration.secret!,
       ignoreExpiration: false,
+      passReqToCallback: true,
     });
   }
 
   //** Validate user id of the payload */
-  validate(payload: AuthJwtPayload) {
+  validate(req: Request, payload: AuthJwtPayload) {
     const userId = payload.sub;
-    return this.authService.validateRefreshToken(userId);
+    const refreshToken = req.get('Authorization')?.replace('Bearer', '').trim();
+    if (!refreshToken) {
+      throw new Error('Refresh token not found in Authorization header');
+    }
+    return this.authService.validateRefreshToken(userId, refreshToken);
   }
 }

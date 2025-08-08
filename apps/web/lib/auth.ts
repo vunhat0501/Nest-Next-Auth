@@ -5,7 +5,6 @@ import { createSession, updateToken } from "@/lib/sessions";
 import { FormState, SignInFormSchema, SignupFormSchema } from "@/lib/type";
 import { getFieldError } from "@/lib/z-error-utils";
 import { redirect } from "next/navigation";
-import z from "zod";
 // import { signIn as authjsSignIn } from "@/auth";
 // import { AuthError } from "next-auth";
 // import { InvalidEmailPasswordError } from "@/lib/errors";
@@ -111,13 +110,14 @@ export const refreshToken = async (oldRefreshToken: string) => {
     const response = await fetch(`${BACKEND_URL}/auth/refresh`, {
       method: "POST",
       //** Use headers if refreshToken set as fromAuthHeaderAsBearerToken in backend config */
-      body: JSON.stringify({
-        refresh: oldRefreshToken,
-      }),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${oldRefreshToken}`,
+      },
     });
-
+    // console.log(response);
     if (!response.ok) {
-      throw new Error("Failed to refresh token");
+      throw new Error("Failed to refresh token" + response.statusText);
     }
 
     const { accessToken, refreshToken } = await response.json();
@@ -125,6 +125,9 @@ export const refreshToken = async (oldRefreshToken: string) => {
     // await updateToken({ accessToken, refreshToken });
     const updateRes = await fetch(`${FRONTEND_URL}/api/auth/update`, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         accessToken,
         refreshToken,

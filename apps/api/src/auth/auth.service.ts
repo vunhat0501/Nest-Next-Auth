@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import type { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { verify } from 'argon2';
+import { hash, verify } from 'argon2';
 import refreshConfig from 'src/auth/config/refresh.config';
 import { AuthJwtPayload } from 'src/auth/types/auth-jwtPayload';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
@@ -42,6 +42,8 @@ export class AuthService {
   async login(userId: number, name: string) {
     //** Get tokens from generateToken func */
     const { accessToken, refreshToken } = await this.generateToken(userId);
+    const hashedRefreshToken = await hash(refreshToken);
+    await this.userService.updateHashRefreshToken(userId, hashedRefreshToken);
     return {
       id: userId,
       name: name,
@@ -74,9 +76,20 @@ export class AuthService {
   }
 
   //** Check if user's refresh token exist in database */
-  async validateRefreshToken(userId: number) {
+  async validateRefreshToken(userId: number, refreshToken: string) {
     const user = await this.userService.findOne(userId);
     if (!user) throw new UnauthorizedException('User not found');
+    if (!user.hashedRefreshToken)
+      throw new UnauthorizedException('Refresh token not found');
+
+    const refreshTokenMatched = await verify(
+      user.hashedRefreshToken,
+      refreshToken,
+    );
+
+    if (!refreshTokenMatched)
+      throw new UnauthorizedException('Invalid refresh token');
+
     const currentUser = { id: user.id };
     return currentUser;
   }
@@ -84,6 +97,8 @@ export class AuthService {
   //** This function is for revoking user's refresh token */
   async refreshToken(userId: number, name: string) {
     const { accessToken, refreshToken } = await this.generateToken(userId);
+    const hashedRefreshToken = await hash(refreshToken);
+    await this.userService.updateHashRefreshToken(userId, hashedRefreshToken);
     return {
       id: userId,
       name: name,
@@ -96,5 +111,9 @@ export class AuthService {
     const user = await this.userService.findByEmail(googleUser.email);
     if (user) return user;
     return await this.userService.create(googleUser);
+  }
+
+  async signOut(userId: number) {
+    return await this.userService.updateHashRefreshToken(userId, null);
   }
 }

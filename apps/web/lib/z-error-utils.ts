@@ -1,16 +1,16 @@
 import z from "zod";
 
+//** {
+// *   "errors": [],
+// *   "properties": {
+// *     "email": { "errors": [Array] },
+// *     "password": { "errors": [Array] }
+// *   }
+// * } */
+
 export const getFieldError = (error: z.ZodError) => {
   const treeified = z.treeifyError(error);
   const fieldErrors: Record<string, string[]> = {};
-  // if ("properties" in treeified) {
-  //   for (const key in treeified.properties) {
-  //     const field = treeified.properties[key];
-  //     if (field.errors && field.errors.length > 0) {
-  //       fieldErrors[key] = field.errors;
-  //     }
-  //   }
-  // }
 
   if (
     typeof treeified === "object" &&

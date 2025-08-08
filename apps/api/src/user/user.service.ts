@@ -34,6 +34,20 @@ export class UserService {
     });
   }
 
+  async updateHashRefreshToken(
+    userId: number,
+    hashedRefreshToken: string | null,
+  ) {
+    return await this.prismaService.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        hashedRefreshToken: hashedRefreshToken,
+      },
+    });
+  }
+
   // findAll() {
   //   return `This action returns all user`;
   // }

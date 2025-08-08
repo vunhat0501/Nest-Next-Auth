@@ -51,7 +51,7 @@ export async function getSession() {
   } catch (error) {
     //** If no session cookies found, send user to signin page */
     console.log("Error verifying session:", error);
-    redirect("/signin");
+    // redirect("/signin");
   }
 }
 

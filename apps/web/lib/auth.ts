@@ -1,7 +1,7 @@
 "use server";
 
 import { BACKEND_URL, FRONTEND_URL } from "@/lib/constants";
-import { createSession, updateToken } from "@/lib/sessions";
+import { createSession, updateTokens } from "@/lib/sessions";
 import { FormState, SignInFormSchema, SignupFormSchema } from "@/lib/type";
 import { getFieldError } from "@/lib/z-error-utils";
 import { redirect } from "next/navigation";

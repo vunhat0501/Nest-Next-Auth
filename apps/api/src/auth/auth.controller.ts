@@ -16,6 +16,7 @@ import { GoogleAuthGuard } from 'src/auth/guards/google-auth/google-auth.guard';
 import type { Response } from 'express';
 import { FRONTEND_URL } from 'src/lib/constants';
 import { Public } from 'src/auth/decorators/public.decorator';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -33,6 +34,7 @@ export class AuthController {
     return this.authService.login(req.user.id, req.user.name);
   }
 
+  @Roles('ADMIN', 'EDITOR')
   @Get('protected')
   getAll(@Request() req: AuthRequest) {
     return {

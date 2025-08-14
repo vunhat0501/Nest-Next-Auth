@@ -36,7 +36,7 @@ export class AuthService {
     const isPasswordMatched = await verify(user.password, password);
     if (!isPasswordMatched)
       throw new UnauthorizedException('Invalid credentials');
-    return { id: user.id, name: user.name };
+    return { id: user.id, name: user.name, role: user.role };
   }
 
   async login(userId: number, name: string) {
@@ -71,7 +71,7 @@ export class AuthService {
   async validateJwtUser(userId: number) {
     const user = await this.userService.findOne(userId);
     if (!user) throw new UnauthorizedException('User not found');
-    const currentUser = { id: user.id };
+    const currentUser = { id: user.id, role: user.id };
     return currentUser;
   }
 
@@ -81,11 +81,14 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('User not found');
     if (!user.hashedRefreshToken)
       throw new UnauthorizedException('Refresh token not found');
+    console.log('Refresh token from frontend', refreshToken);
 
     const refreshTokenMatched = await verify(
       user.hashedRefreshToken,
       refreshToken,
     );
+
+    console.log('Refresh token matched', refreshTokenMatched);
 
     if (!refreshTokenMatched)
       throw new UnauthorizedException('Invalid refresh token');
@@ -94,10 +97,13 @@ export class AuthService {
     return currentUser;
   }
 
+  //TODO: tach thu hoi refresh token va tao moi access token thanh function khac nhau
   //** This function is for revoking user's refresh token */
   async refreshToken(userId: number, name: string) {
     const { accessToken, refreshToken } = await this.generateToken(userId);
+    console.log('new refresh token before hashing', refreshToken);
     const hashedRefreshToken = await hash(refreshToken);
+    console.log('new refresh token after hashing', hashedRefreshToken);
     await this.userService.updateHashRefreshToken(userId, hashedRefreshToken);
     return {
       id: userId,

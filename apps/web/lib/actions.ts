@@ -13,6 +13,9 @@ export const getProfile = async () => {
   // });
 
   const response = await authFetch(`${BACKEND_URL}/auth/protected`);
+  // if (!response.ok) {
+  //   throw new Error("Failed to fetch profile data.");
+  // }
 
   const result = await response.json();
   return result;

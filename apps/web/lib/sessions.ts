@@ -18,17 +18,13 @@ const secretKey = process.env.SESSION_SECRET_KEY!;
 const encodedKey = new TextEncoder().encode(secretKey);
 
 export async function createSession(payload: Session) {
-  const expiredAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-
-  //** Encrypt session with jose and store in HTTP only cookie */
-  //** Encrypt with jose */
+  const expiredAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
   const session = await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(expiredAt)
-    .sign(encodedKey);
+    .sign(encodedKey); //** Store session in HTTP only cookie */
 
-  //** Store session in HTTP only cookie */
   (await cookies()).set("session", session, {
     httpOnly: true,
     secure: true,
@@ -39,28 +35,27 @@ export async function createSession(payload: Session) {
 }
 
 export async function getSession() {
-  const sessionCookie = (await cookies()).get("session")?.value;
-  if (!sessionCookie) return null;
+  const cookie = (await cookies()).get("session")?.value;
+  if (!cookie) return null;
+
   try {
-    //** Decrypt session with jose */
-    const { payload } = await jwtVerify(sessionCookie, encodedKey, {
+    const { payload } = await jwtVerify(cookie, encodedKey, {
       algorithms: ["HS256"],
     });
 
     return payload as Session;
-  } catch (error) {
-    //** If no session cookies found, send user to signin page */
-    console.log("Error verifying session:", error);
-    // redirect("/signin");
+  } catch (err) {
+    console.error("Failed to verify the session", err);
+    redirect("/signin");
   }
 }
 
 export async function deleteSession() {
   (await cookies()).delete("session");
-  redirect("/");
+  redirect("/signin");
 }
 
-export async function updateToken({
+export async function updateTokens({
   accessToken,
   refreshToken,
 }: {
@@ -69,12 +64,14 @@ export async function updateToken({
 }) {
   //** Getting cookies from user and validate it */
   const cookie = (await cookies()).get("session")?.value;
-  if (!cookie) return null;
+  if (!cookie) {
+    throw new Error("Session not found");
+  }
 
   const { payload } = await jwtVerify<Session>(cookie, encodedKey);
-  if (!payload) throw new Error("Invalid session");
 
-  //** Update session with new tokens */
+  if (!payload) throw new Error("Session not found"); //** Update session with new tokens */
+
   const newPayload: Session = {
     user: {
       ...payload.user,
